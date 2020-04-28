@@ -88,8 +88,46 @@ namespace ReleaseServer.WebApi.Repositories
                     ProductIdentifier = productDir.Name,
                     Os = osDir.Name,
                     HwArchitecture = hwArchDir.Name,
-                    Version = versionDir.Name.ToProductVersion()
+                    Version = versionDir.Name.ToProductVersion(),
+                    Changelog = readChangelog(osDir.Name, hwArchDir.Name, versionDir.Name.ToProductVersion()),
+                    ReleaseDate = readReleaseDate(osDir.Name, hwArchDir.Name, versionDir.Name.ToProductVersion())
                 };
+
+            string readChangelog(string os, string architecture, ProductVersion version) {
+                var path = GenerateArtifactPath(productName, os, architecture, version.ToString());
+                if (Directory.Exists(path))
+                {
+                    var dir = new DirectoryInfo(path);
+                    var files = dir.GetFiles();
+
+                    var deploymentMetaInfo = GetDeploymentMetaInfo(files);
+                    
+                    var changelogFile = Path.Combine(path, deploymentMetaInfo.ChangelogFileName);
+                    if (File.Exists(changelogFile)) {
+                        return File.ReadAllText(changelogFile);
+                    }
+                    else {
+                        return null;
+                    }
+                }
+
+                return null;
+            }
+
+            string readReleaseDate(string os, string architecture, ProductVersion version) {
+                var path = GenerateArtifactPath(productName, os, architecture, version.ToString());
+                if (Directory.Exists(path))
+                {
+                    var dir = new DirectoryInfo(path);
+                    var files = dir.GetFiles();
+
+                    var deploymentMetaInfo = GetDeploymentMetaInfo(files);
+                    
+                    return deploymentMetaInfo.ReleaseDate;
+                }
+
+                return null;
+            }
 
             return productInformation.ToList();
         }

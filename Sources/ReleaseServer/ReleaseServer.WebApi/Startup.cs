@@ -1,6 +1,9 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -38,7 +41,17 @@ namespace ReleaseServer.WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services
+                .AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    var serializerOptions = options.JsonSerializerOptions;
+                    serializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    serializerOptions.IgnoreNullValues = true;
+                    serializerOptions.AllowTrailingCommas = true;
+                    serializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: JsonNamingPolicy.CamelCase, allowIntegerValues: false));
+                });
+
             services.AddSwaggerGen(c =>
             {
                 
